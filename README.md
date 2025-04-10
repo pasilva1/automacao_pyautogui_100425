@@ -1,0 +1,1 @@
+# automacao_pyautogui_100425
