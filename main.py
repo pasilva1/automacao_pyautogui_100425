@@ -41,8 +41,8 @@ scheduler = BackgroundScheduler(timezone='America/Sao_Paulo')
 scheduler.add_job(
     func=abrir_bloco_de_notas,
     trigger='cron',
-    hour=16,
-    minute=10,
+    hour=15,
+    minute=50,
     second=5,
     misfire_grace_time=300,
     id='abrir_bloco')
