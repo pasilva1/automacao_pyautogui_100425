@@ -7,6 +7,9 @@ import pytz
 
 app = Flask(__name__)
 
+# Desativa o fail-safe do PyAutoGUI
+pyautogui.FAILSAFE = False
+
 
 def abrir_bloco_de_notas():
     try:
@@ -18,10 +21,10 @@ def abrir_bloco_de_notas():
         pyautogui.press('enter')
         time.sleep(1)
         pyautogui.write(
-            'Automação feita com Flask + PyAutoGUI + APScheduler! 🧠🚀', interval=0.05)
-        print("✅ Automação concluída com sucesso.")
+            'Automação feita com Flask + PyAutoGUI + APScheduler!', interval=0.05)
+        print("[OK] Automação concluída com sucesso.")
     except Exception as e:
-        print(f"❌ Erro ao executar automação: {e}")
+        print(f"[ERRO] Falha ao executar automação: {e}")
 
 
 @app.route('/abrir_bloco_de_notas')
@@ -38,13 +41,13 @@ scheduler = BackgroundScheduler(timezone='America/Sao_Paulo')
 scheduler.add_job(
     func=abrir_bloco_de_notas,
     trigger='cron',
-    hour=15,
-    minute=40,
+    hour=16,
+    minute=10,
     second=5,
     misfire_grace_time=300,
     id='abrir_bloco')
 scheduler.start()
 
 if __name__ == '__main__':
-    print("Servidor Flask iniciado. Aguardando requisições ou agendamento às 15h...")
+    print("Servidor Flask iniciado. Aguardando requisições ou agendamento às 16h10...")
     app.run(host="0.0.0.0", port=5000, debug=True)
