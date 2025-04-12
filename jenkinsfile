@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                // Clona o repositório Git
+                git branch: 'main', url: 'https://github.com/pasilva1/automacao_pyautogui_100425.git'
+            }
+        }
+        stage('Deploy to Windows') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'windows-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    script {
+                        // Copiar arquivos para a máquina Windows usando PowerShell remoto
+                        powershell """
+                            \$session = New-PSSession -ComputerName 192.1.168.7 -Credential (New-Object System.Management.Automation.PSCredential -ArgumentList \$env:USERNAME, (ConvertTo-SecureString \$env:PASSWORD -AsPlainText -Force))
+                            Copy-Item -Path 'main.py' -Destination 'C:\\app\\main.py' -ToSession \$session
+                            Copy-Item -Path 'requirements.txt' -Destination 'C:\\app\\requirements.txt' -ToSession \$session
+                            Invoke-Command -Session \$session -ScriptBlock {
+                                # Criar diretório se não existir
+                                New-Item -ItemType Directory -Path 'C:\\app' -Force
+                                # Instalar dependências
+                                python -m pip install --upgrade pip
+                                pip install -r 'C:\\app\\requirements.txt'
+                                # Executar o main.py em segundo plano
+                                Start-Process python -ArgumentList 'C:\\app\\main.py' -NoNewWindow
+                            }
+                            Remove-PSSession -Session \$session
+                        """
+                    }
+                }
+            }
+        }
+    }
+}
