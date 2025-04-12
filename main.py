@@ -46,5 +46,5 @@ scheduler.add_job(
 scheduler.start()
 
 if __name__ == '__main__':
-    print("🚀 Servidor Flask iniciado. Aguardando requisições ou agendamento às 15h...")
+    print("Servidor Flask iniciado. Aguardando requisições ou agendamento às 15h...")
     app.run(host="0.0.0.0", port=5000, debug=True)
