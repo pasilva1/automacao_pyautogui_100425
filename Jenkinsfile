@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        REMOTE_HOST = '192.168.1.7'
+        REMOTE_PATH = 'C:/app'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -8,29 +13,18 @@ pipeline {
             }
         }
 
-        stage('Deploy to Windows') {
+        stage('Deploy via SSH') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'windows-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    powershell '''
-                        $securePassword = ConvertTo-SecureString $env:PASSWORD -AsPlainText -Force
-                        $cred = New-Object System.Management.Automation.PSCredential ($env:USERNAME, $securePassword)
+                    sh '''
+                        echo "📁 Criando diretório no remoto..."
+                        sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$USERNAME@$REMOTE_HOST" "powershell -Command \\"New-Item -Path '$REMOTE_PATH' -ItemType Directory -Force\\""
 
-                        $session = New-PSSession -ComputerName 192.1.168.7 -Credential $cred
+                        echo "📤 Enviando arquivos..."
+                        sshpass -p "$PASSWORD" scp -o StrictHostKeyChecking=no main.py requirements.txt "$USERNAME@$REMOTE_HOST:$REMOTE_PATH/"
 
-                        Invoke-Command -Session $session -ScriptBlock {
-                            New-Item -ItemType Directory -Path 'C:\\app' -Force
-                        }
-
-                        Copy-Item -Path 'main.py' -Destination 'C:\\app\\main.py' -ToSession $session
-                        Copy-Item -Path 'requirements.txt' -Destination 'C:\\app\\requirements.txt' -ToSession $session
-
-                        Invoke-Command -Session $session -ScriptBlock {
-                            python -m pip install --upgrade pip
-                            pip install -r 'C:\\app\\requirements.txt'
-                            Start-Process python -ArgumentList 'C:\\app\\main.py' -NoNewWindow
-                        }
-
-                        Remove-PSSession -Session $session
+                        echo "🚀 Executando main.py..."
+                        sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$USERNAME@$REMOTE_HOST" "powershell -Command \\"cd '$REMOTE_PATH'; pip install -r requirements.txt; python main.py\\""
                     '''
                 }
             }
