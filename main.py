@@ -4,6 +4,8 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import pytz
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 app = Flask(__name__)
 
@@ -49,5 +51,5 @@ scheduler.add_job(
 scheduler.start()
 
 if __name__ == '__main__':
-    print("Servidor Flask iniciado. Aguardando requisições ou agendamento às 16h10...")
+    print("Servidor Flask iniciado. Aguardando requisições ou agendamento...")
     app.run(host="0.0.0.0", port=5000, debug=True)
